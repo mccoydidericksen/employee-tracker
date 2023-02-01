@@ -8,7 +8,34 @@ const db = mysql.createConnection({
     database: "employee_tracker_db"
 });
 
-function start() {
+const viewDepartments = () => {
+    db.query("SELECT * FROM department", function (err, results) {
+        if (err) {
+            console.log(err);
+        }
+        console.table(results);
+    });
+};
+
+const viewEmployees = () => {
+    db.query("SELECT * FROM employee", function (err, results) {
+        if (err) {
+            console.log(err);
+        }
+        console.table(results);
+    });
+};
+
+const viewRoles = () => {
+    db.query("SELECT * FROM role", function (err, results) {
+        if (err) {
+            console.log(err);
+        }
+        console.table(results);
+    });
+};
+
+function prompt() {
     inquirer
         .prompt([
             {
@@ -54,6 +81,9 @@ function start() {
                     db.end();
                     console.log("Goodbye!");
                     break;
+            }
+            if(response.action !== "Exit"){
+                prompt()
             }
         })
 }

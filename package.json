@@ -18,7 +18,8 @@
   },
   "homepage": "https://github.com/mccoydidericksen/employee-tracker#readme",
   "dependencies": {
-    "inquirer": "^9.1.4",
+    "console-table-printer": "^2.11.1",
+    "inquirer": "^8.2.4",
     "mysql2": "^3.1.0"
   }
 }

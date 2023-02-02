@@ -5,30 +5,30 @@ CREATE DATABASE employee_tracker_db;
 USE employee_tracker_db;
 
 CREATE TABLE department (
-    id INT NOT NULL AUTO_INCREMENT,
-    name VARCHAR(30) NOT NULL,
-    PRIMARY KEY (id)
+    department_id INT NOT NULL AUTO_INCREMENT,
+    department_name VARCHAR(30) NOT NULL,
+    PRIMARY KEY (department_id)
 );
 
-CREATE TABLE role (
-    id INT NOT NULL AUTO_INCREMENT,
+CREATE TABLE roles (
+    role_id INT NOT NULL AUTO_INCREMENT,
     title VARCHAR(30) NOT NULL,
     salary DECIMAL,
     department_id INT,
-    PRIMARY KEY (id),
+    PRIMARY KEY (role_id),
     FOREIGN KEY (department_id)
-    REFERENCES department(id)
+    REFERENCES department(department_id)
     ON DELETE SET NULL
 );
 
 CREATE TABLE employee (
-    id INT NOT NULL AUTO_INCREMENT,
+    employee_id INT NOT NULL AUTO_INCREMENT,
     first_name VARCHAR(30),
     last_name VARCHAR(30),
-    role_id INT FOREIGN KEY,
+    role_id INT,
     manager_id INT,
-    PRIMARY KEY (id),
+    PRIMARY KEY (employee_id),
     FOREIGN KEY (role_id)
-    REFERENCES role(id)
+    REFERENCES roles(role_id)
     ON DELETE SET NULL
 );

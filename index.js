@@ -38,6 +38,11 @@ const addDepartment = async () => {
 };
 
 const addRole = async () => {
+    let availableDepartments = [];
+    const results = await db.promise().query("SELECT department_id, department_name FROM department;");
+    for (let i = 0; i < results[0].length; i++) {
+        availableDepartments.push(results[0][i].department_id + " - " + results[0][i].department_name);
+    };
     const res = await inquirer
                     .prompt([
                         {
@@ -51,16 +56,30 @@ const addRole = async () => {
                             name: "roleSalary"
                         },
                         {
-                            type: "input",
-                            message: "What is the department id of the role you would like to add?",
-                            name: "roleDepartmentId"
+                            type: "list",
+                            message: "What is the department of the role you would like to add?",
+                            name: "roleDepartmentId",
+                            choices: availableDepartments
                         }
                     ]);
-    await db.promise().query("INSERT INTO roles (title, salary, department_id) VALUES (?, ?, ?);", [res.roleTitle, res.roleSalary, res.roleDepartmentId]);
+    await db.promise().query("INSERT INTO roles (title, salary, department_id) VALUES (?, ?, ?);", [res.roleTitle, res.roleSalary, res.roleDepartmentId[0]]);
     return "Role added successfully!";
 };
 
 const addEmployee = async () => {
+    let availableRoles = [];
+    const role_results = await db.promise().query("SELECT role_id, title FROM roles;");
+    for (let i = 0; i < role_results[0].length; i++) {
+        availableRoles.push(role_results[0][i].role_id + " - " + role_results[0][i].title);
+    };
+    
+    let availableManagers = [];
+    const manager_results = await db.promise().query("SELECT employee_id, first_name, last_name FROM employee WHERE manager_id IS NULL;");
+    for (let i = 0; i < manager_results[0].length; i++) {
+        availableManagers.push(manager_results[0][i].employee_id + " - " + manager_results[0][i].first_name + " " + manager_results[0][i].last_name);
+    };
+    availableManagers.push("No Manager");
+    
     const res = await inquirer
                     .prompt([
                         {
@@ -74,35 +93,73 @@ const addEmployee = async () => {
                             name: "employeeLastName"
                         },
                         {
-                            type: "input",
-                            message: "What is the role id of the employee you would like to add?",
-                            name: "employeeRoleId"
+                            type: "list",
+                            message: "What is the role of the employee you would like to add?",
+                            name: "employeeRoleId",
+                            choices: availableRoles
                         },
                         {
-                            type: "input",
-                            message: "What is the manager id of the employee you would like to add?",
-                            name: "employeeManagerId"
+                            type: "list",
+                            message: "What is the manager of the employee you would like to add?",
+                            name: "employeeManagerId",
+                            choices: availableManagers
                         }
                     ]);
-    await db.promise().query("INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?);", [res.employeeFirstName, res.employeeLastName, res.employeeRoleId, res.employeeManagerId]);
+    if (res.employeeManagerId === "No Manager") {
+        res.employeeManagerId = null;
+        await db.promise().query("INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?);", [res.employeeFirstName, res.employeeLastName, res.employeeRoleId.substr(0, res.employeeRoleId.indexOf(" ")), res.employeeManagerId]);
+
+    } else {
+        await db.promise().query("INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?);", [res.employeeFirstName, res.employeeLastName, res.employeeRoleId.substr(0, res.employeeRoleId.indexOf(" ")), res.employeeManagerId.substr(0, res.employeeManagerId.indexOf(" "))]);
+    };
     return "Employee added successfully!";
 };
 
 const updateEmployeeRole = async () => {
+    let availableEmployees = [];
+    const employee_results = await db.promise().query("SELECT employee_id, first_name, last_name FROM employee;");
+    for (let i = 0; i < employee_results[0].length; i++) {
+        availableEmployees.push(employee_results[0][i].employee_id + " - " + employee_results[0][i].first_name + " " + employee_results[0][i].last_name);
+    };
+    let availableRoles = [];
+    const role_results = await db.promise().query("SELECT role_id, title FROM roles;");
+    for (let i = 0; i < role_results[0].length; i++) {
+        availableRoles.push(role_results[0][i].role_id + " - " + role_results[0][i].title);
+    };
+    let availableManagers = [];
+    const manager_results = await db.promise().query("SELECT employee_id, first_name, last_name FROM employee WHERE manager_id IS NULL;");
+    for (let i = 0; i < manager_results[0].length; i++) {
+        availableManagers.push(manager_results[0][i].employee_id + " - " + manager_results[0][i].first_name + " " + manager_results[0][i].last_name);
+    };
+    availableManagers.push("No Manager");
     const res = await inquirer
                     .prompt([
                         {
-                            type: "input",
-                            message: "What is the id of the employee you would like to update?",
-                            name: "employeeId"
+                            type: "list",
+                            message: "Who is the employee you would like to update?",
+                            name: "employeeId",
+                            choices: availableEmployees
                         },
                         {
-                            type: "input",
-                            message: "What is the new role id of the employee you would like to update?",
-                            name: "employeeRoleId"
+                            type: "list",
+                            message: "What is the new role of the employee you would like to update?",
+                            name: "employeeRoleId",
+                            choices: availableRoles
+                        },
+                        {
+                            type: "list",
+                            message: "Who is the new manager of the employee you would like to update?",
+                            name: "employeeManagerId",
+                            choices: availableManagers
                         }
                     ]);
-    await db.promise().query("UPDATE employee SET role_id = ? WHERE employee_id = ?;", [res.employeeRoleId, res.employeeId]);
+    // original.substr(original.indexOf(" ") + 1);
+    if (res.employeeManagerId === "No Manager") {
+        res.employeeManagerId = null;
+        await db.promise().query("UPDATE employee SET role_id = ?, manager_id = ? WHERE employee_id = ?;", [res.employeeRoleId.substr(0, res.employeeRoleId.indexOf(" ")), res.employeeManagerId, res.employeeId.substr(0, res.employeeId.indexOf(" "))]);
+    } else {
+        await db.promise().query("UPDATE employee SET role_id = ?, manager_id = ? WHERE employee_id = ?;", [res.employeeRoleId.substr(0, res.employeeRoleId.indexOf(" ")), res.employeeManagerId.substr(0, res.employeeManagerId.indexOf(" ")), res.employeeId.substr(0, res.employeeId.indexOf(" "))]);
+    }
     return "Employee updated successfully!";
 };
 
@@ -167,8 +224,6 @@ const prompt = async () => {
         prompt();
     }                 
 }
-
-//TODO: Add functionality to display list for adding and updating existing db fields
 
 prompt();
 

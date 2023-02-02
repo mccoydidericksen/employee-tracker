@@ -24,6 +24,88 @@ const viewRoles = async () => {
     return results[0];
 };
 
+const addDepartment = async () => {
+    const res = await inquirer
+                    .prompt([
+                        {
+                            type: "input",
+                            message: "What is the name of the department you would like to add?",
+                            name: "departmentName"
+                        }
+                    ]);
+    await db.promise().query("INSERT INTO department (department_name) VALUES (?);", res.departmentName);
+    return "Department added successfully!";
+};
+
+const addRole = async () => {
+    const res = await inquirer
+                    .prompt([
+                        {
+                            type: "input",
+                            message: "What is the title of the role you would like to add?",
+                            name: "roleTitle"
+                        },
+                        {
+                            type: "input",
+                            message: "What is the salary of the role you would like to add?",
+                            name: "roleSalary"
+                        },
+                        {
+                            type: "input",
+                            message: "What is the department id of the role you would like to add?",
+                            name: "roleDepartmentId"
+                        }
+                    ]);
+    await db.promise().query("INSERT INTO roles (title, salary, department_id) VALUES (?, ?, ?);", [res.roleTitle, res.roleSalary, res.roleDepartmentId]);
+    return "Role added successfully!";
+};
+
+const addEmployee = async () => {
+    const res = await inquirer
+                    .prompt([
+                        {
+                            type: "input",
+                            message: "What is the first name of the employee you would like to add?",
+                            name: "employeeFirstName"
+                        },
+                        {
+                            type: "input",
+                            message: "What is the last name of the employee you would like to add?",
+                            name: "employeeLastName"
+                        },
+                        {
+                            type: "input",
+                            message: "What is the role id of the employee you would like to add?",
+                            name: "employeeRoleId"
+                        },
+                        {
+                            type: "input",
+                            message: "What is the manager id of the employee you would like to add?",
+                            name: "employeeManagerId"
+                        }
+                    ]);
+    await db.promise().query("INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?);", [res.employeeFirstName, res.employeeLastName, res.employeeRoleId, res.employeeManagerId]);
+    return "Employee added successfully!";
+};
+
+const updateEmployeeRole = async () => {
+    const res = await inquirer
+                    .prompt([
+                        {
+                            type: "input",
+                            message: "What is the id of the employee you would like to update?",
+                            name: "employeeId"
+                        },
+                        {
+                            type: "input",
+                            message: "What is the new role id of the employee you would like to update?",
+                            name: "employeeRoleId"
+                        }
+                    ]);
+    await db.promise().query("UPDATE employee SET role_id = ? WHERE employee_id = ?;", [res.employeeRoleId, res.employeeId]);
+    return "Employee updated successfully!";
+};
+
 const responseAction = async (res) => {
     let results;
     switch (res.action) {
@@ -77,10 +159,16 @@ const prompt = async () => {
         return;
     } else {
         let results = await responseAction(res);
-        printTable(results);
+        if(typeof results === "object"){
+            printTable(results);
+        } else {
+            console.log(results);
+        }
         prompt();
     }                 
 }
+
+//TODO: Add functionality to display list for adding and updating existing db fields
 
 prompt();
 

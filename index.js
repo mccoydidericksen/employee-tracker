@@ -62,7 +62,7 @@ const addRole = async () => {
                             choices: availableDepartments
                         }
                     ]);
-    await db.promise().query("INSERT INTO roles (title, salary, department_id) VALUES (?, ?, ?);", [res.roleTitle, res.roleSalary, res.roleDepartmentId[0]]);
+    await db.promise().query("INSERT INTO roles (title, salary, department_id) VALUES (?, ?, ?);", [res.roleTitle, res.roleSalary, res.roleDepartmentId.substr(0, res.roleDepartmentId.indexOf(" "))]);
     return "Role added successfully!";
 };
 
@@ -153,7 +153,6 @@ const updateEmployeeRole = async () => {
                             choices: availableManagers
                         }
                     ]);
-    // original.substr(original.indexOf(" ") + 1);
     if (res.employeeManagerId === "No Manager") {
         res.employeeManagerId = null;
         await db.promise().query("UPDATE employee SET role_id = ?, manager_id = ? WHERE employee_id = ?;", [res.employeeRoleId.substr(0, res.employeeRoleId.indexOf(" ")), res.employeeManagerId, res.employeeId.substr(0, res.employeeId.indexOf(" "))]);
